@@ -31,7 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "cmsis_os2.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -59,6 +59,8 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define SAFETY_END_Pin GPIO_PIN_13
 #define SAFETY_END_GPIO_Port GPIOB
+#define CHECK_HUMAN_DOWN_Pin GPIO_PIN_8
+#define CHECK_HUMAN_DOWN_GPIO_Port GPIOA
 #define SAFETY_C1_Pin GPIO_PIN_9
 #define SAFETY_C1_GPIO_Port GPIOA
 #define SAFETY_C2_Pin GPIO_PIN_6
@@ -81,7 +83,13 @@ void Error_Handler(void);
 #define SAFETY_C8_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
+typedef enum
+{
+	FALSE,
+	TRUE
+}bool;
 
+extern osThreadId_t canResponseTHandle;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

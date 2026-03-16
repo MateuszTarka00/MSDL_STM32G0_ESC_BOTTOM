@@ -63,8 +63,8 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : SAFETY_C1_Pin SAFETY_C4_Pin */
-  GPIO_InitStruct.Pin = SAFETY_C1_Pin|SAFETY_C4_Pin;
+  /*Configure GPIO pins : CHECK_HUMAN_DOWN_Pin SAFETY_C1_Pin SAFETY_C4_Pin */
+  GPIO_InitStruct.Pin = CHECK_HUMAN_DOWN_Pin|SAFETY_C1_Pin|SAFETY_C4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);

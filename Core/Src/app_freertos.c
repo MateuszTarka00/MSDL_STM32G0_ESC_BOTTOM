@@ -25,7 +25,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "fdcan.h"
+#include "canCommunication.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -96,6 +97,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
+	CAN_InitRTOS();
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -125,10 +127,13 @@ void MX_FREERTOS_Init(void) {
 void mainTask(void *argument)
 {
   /* USER CODE BEGIN mainTask */
+	HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+	HAL_FDCAN_Start(&hfdcan1);
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	  sendSensorStateEventTx();
+    osDelay(100);
   }
   /* USER CODE END mainTask */
 }
@@ -146,7 +151,12 @@ void canResponse(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	CAN_Message_t msg;
+	if(xQueueReceive(canRxQueue, &msg, portMAX_DELAY) == pdTRUE)
+	{
+		processMessage(&msg);
+	}
+
   }
   /* USER CODE END canResponse */
 }
