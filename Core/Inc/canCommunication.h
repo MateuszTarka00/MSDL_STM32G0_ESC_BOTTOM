@@ -77,6 +77,12 @@ typedef struct{
 
 typedef struct{
 	uint16_t actionID;
+	uint8_t circuitPoint;
+	uint8_t  destination;
+}brokenCircuitPointStructureTx;
+
+typedef struct{
+	uint16_t actionID;
 	uint8_t  destination;
 }HeartBitEmergencyActionStructureTx;
 
@@ -127,10 +133,6 @@ void recognitionActionTx(void);
 void recognitionActionRx(uint16_t id);
 void heartBitEmergencyActionTx(void);
 void heartBitActionRx(uint16_t id, HeartBitActionStructureRx *data, uint8_t len);
-void parameterSetActionTx(uint16_t parameterID, uint16_t deviceID, uint16_t value);
-void parameterSetActionRx(uint16_t id, ParameterActionSetStructureRx *data, uint8_t len);
-void parameterGetActionTx(uint16_t parameterID, uint16_t deviceID);
-void parameterGetActionRx(uint16_t id, ParameterActionGetStructureRx *data, uint8_t len);
 void initHeartBitTimers(void);
 void heartBitSubTask(void);
 bool getBootomBoardAlive(void);
@@ -138,6 +140,7 @@ void processMessage(CAN_Message_t *msg);
 bool getHumanDown(void);
 bool getSafetyCircuitBottom(void);
 void sendSensorStateEventTx(void);
+void sendSafetyCircuitEventTx(void);
 
 
 #endif /* INC_CANCOMMUNICATION_H_ */

@@ -9,15 +9,14 @@
 #include "fdcan.h"
 #include "string.h"
 #include "FreeRTOS.h"
+#include "safetyCircuit.h"
 
 static volatile uint8_t myID = BOTTOM_CONTROL_BOARD_ID;
 
 static uint32_t FDCAN_BytesToDLC(uint8_t len);
-static uint8_t devicesNumber = 0;
-
-static CanDevice canDevices[DEVICES_MAX_NUMBER];
 static bool humanDownStairs = FALSE;
 static bool bottomSafetyCircuit = FALSE;
+static SafetyCircuitPoint brokenCircuitPoint = SAFETY_CIRCUIT_UNBROKEN;
 
 QueueHandle_t canRxQueue;
 
@@ -41,7 +40,10 @@ void FDCAN_Send(uint16_t id, uint8_t *data, uint8_t len)
     TxHeader.MessageMarker = 0;
 
     /* Wait until TX FIFO has free space */
-    while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) == 0);
+    while (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) == 0)
+    {
+        vTaskDelay(pdMS_TO_TICKS(1)); // yield CPU
+    }
 
     HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, data);
 }
@@ -104,6 +106,31 @@ void sendSensorStateEventTx(void)
 	}
 }
 
+void sendSafetyCircuitEventTx(void)
+{
+	SafetyCircuitPoint brokenCircuitPointTmp;
+
+	if(!getSafetyCircuitState())
+	{
+		brokenCircuitPointTmp = checkBrokenSafetyCircuitPoint();
+	}
+	else
+	{
+		brokenCircuitPointTmp = SAFETY_CIRCUIT_UNBROKEN;
+	}
+
+	if(brokenCircuitPointTmp != brokenCircuitPoint)
+	{
+		brokenCircuitPoint = brokenCircuitPointTmp;
+		brokenCircuitPointStructureTx message;
+		uint16_t arbitration = (myID<<8) + (EVENT<<ACTION_EVENT_BIT) + (REQUEST<<RQ_RS_BIT);
+		message.actionID = BOTTOM_SAFETY_CIRCUIT_EVENT;
+		message.circuitPoint = brokenCircuitPoint;
+		message.destination = MASTER_ID;
+		FDCAN_Send(arbitration, (uint8_t *)&message, EVENT_SIZE);
+	}
+}
+
 void processEvent(uint16_t eventId, uint8_t value)
 {
 	switch(eventId)
@@ -118,33 +145,6 @@ void processEvent(uint16_t eventId, uint8_t value)
 		break;
 	}
 }
-
-//void parameterSetActionTx(uint16_t parameterID, uint16_t deviceID, uint16_t value)
-//{
-//	ParameterActionSetStructureTx message;
-//	message.actionID = PARAMETR_SET_ACTION;
-//	message.destination = deviceID;
-//	message.parameterID = parameterID;
-//	message.value = value;
-//
-//	FDCAN_Send(myID, (uint8_t *) &message, PARAMETER_ACTION_SET_TX_LEN);
-//}
-//
-//void parameterSetActionRx(uint16_t id, ParameterActionSetStructureRx *data, uint8_t len)
-//{
-//	//todo add parameter ack set callback
-//}
-//
-//void parameterGetActionTx(uint16_t parameterID, uint16_t deviceID)
-//{
-//	ParameterActionGetStructureTx message;
-//	message.actionID = PARAMETR_GET_ACTION;
-//	message.destination = deviceID;
-//	message.parameterID = parameterID;
-//
-//	FDCAN_Send(myID, (uint8_t *) &message, PARAMETER_ACTION_GET_TX_LEN);
-//
-//}
 
 void parameterGetActionRx(uint16_t id, ParameterActionGetStructureRx *data, uint8_t len)
 {
@@ -214,10 +214,4 @@ void processMessage(CAN_Message_t *msg)
 		processEvent(eventID, value);
 	}
 }
-
-bool getSafetyCircuitBottom(void)
-{
-	return bottomSafetyCircuit;
-}
-
 

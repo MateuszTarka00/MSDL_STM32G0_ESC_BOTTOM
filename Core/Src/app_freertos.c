@@ -27,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "fdcan.h"
 #include "canCommunication.h"
+#include "iwdg.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -132,7 +133,9 @@ void mainTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
+	  HAL_IWDG_Refresh(&hiwdg);
 	  sendSensorStateEventTx();
+	  sendSafetyCircuitEventTx();
     osDelay(100);
   }
   /* USER CODE END mainTask */
@@ -151,6 +154,7 @@ void canResponse(void *argument)
   /* Infinite loop */
   for(;;)
   {
+	  HAL_IWDG_Refresh(&hiwdg);
 	CAN_Message_t msg;
 	if(xQueueReceive(canRxQueue, &msg, portMAX_DELAY) == pdTRUE)
 	{
