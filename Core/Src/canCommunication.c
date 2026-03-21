@@ -124,7 +124,7 @@ void sendSafetyCircuitEventTx(void)
 		brokenCircuitPoint = brokenCircuitPointTmp;
 		brokenCircuitPointStructureTx message;
 		uint16_t arbitration = (myID<<8) + (EVENT<<ACTION_EVENT_BIT) + (REQUEST<<RQ_RS_BIT);
-		message.actionID = BOTTOM_SAFETY_CIRCUIT_EVENT;
+		message.actionID = BOTTOM_SAFETY_CIRCUIT_EVENT << 8;
 		message.circuitPoint = brokenCircuitPoint;
 		message.destination = MASTER_ID;
 		FDCAN_Send(arbitration, (uint8_t *)&message, EVENT_SIZE);
